@@ -1,21 +1,28 @@
 import express from "express";
-import { getUserProfile } from "../controllers/userController.js";
-
+import { getUserProfile, createUser } from "../controllers/userController.js";
+import protect from "../middleware/protect.js";
 
 const router = express.Router();
 
+// Auth check endpoint
 router.get("/check-auth", (req, res) => {
     if(req.oidc.isAuthenticated()){
-// return auth status
         return res.status(200).json({
             isAuthenticated: true,
             user: req.oidc.user,
         });
-    }else{
-        return res.status(200).json(false);
+    } else {
+        return res.status(200).json({
+            isAuthenticated: false,
+            message: "Not authenticated"
+        });
     }
 });
 
-router.get("/user/:id", getUserProfile);
+// Create new user (public endpoint)
+router.post("/register", createUser);
+
+// Protected routes
+router.get("/user/:id", protect, getUserProfile);
 
 export default router;

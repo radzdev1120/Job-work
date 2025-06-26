@@ -38,11 +38,28 @@ const userSchema = new mongoose.Schema({
     default: "jobseeker",
   },
 
-  resume: {
+  profession: {
+    type: String,
+    default: "Unemployed",
+  },
+
+  phone: {
     type: String,
   },
 
-  profilePicture: {
+  location: {
+    type: String,
+  },
+
+  linkedin: {
+    type: String,
+  },
+
+  github: {
+    type: String,
+  },
+
+  website: {
     type: String,
   },
 
@@ -51,9 +68,37 @@ const userSchema = new mongoose.Schema({
     default: "No bio provided",
   },
 
-  profession: {
+  skills: [{
     type: String,
-    default: "Unemployed",
+  }],
+
+  education: [{
+    degree: String,
+    school: String,
+    year: String,
+  }],
+
+  experience: [{
+    title: String,
+    company: String,
+    duration: String,
+    description: String,
+  }],
+
+  company: {
+    type: String,
+  },
+
+  position: {
+    type: String,
+  },
+
+  resume: {
+    type: String,
+  },
+
+  profilePicture: {
+    type: String,
   },
 
 }, { timestamps: true });
