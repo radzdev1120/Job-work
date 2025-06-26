@@ -15,7 +15,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { dummyUsers } from '../data/dummyUsers';
+import { register } from '../hooks/registerApi';
 
 const EmployerRegister = () => {
   const navigate = useNavigate();
@@ -52,6 +52,7 @@ const EmployerRegister = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -117,7 +118,7 @@ const EmployerRegister = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -129,40 +130,53 @@ const EmployerRegister = () => {
       return;
     }
 
-    // Check if email already exists
-    const existingUser = dummyUsers.find(user => user.email === formData.email);
-    if (existingUser) {
+    try {
+      setLoading(true);
+      
+      // Prepare the data for the API
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        company: formData.company,
+        position: formData.position,
+        phone: formData.phone,
+        location: formData.location,
+        website: formData.website,
+        bio: formData.bio,
+        skills: formData.skills,
+        education: formData.education,
+        experience: formData.experience
+      };
+
+      // Make the API call using the register hook
+      const response = await register(userData);
+
+      // Store user data in localStorage
+      localStorage.setItem('user', JSON.stringify(response.user));
+
       setSnackbar({
         open: true,
-        message: 'Email already registered',
+        message: 'Registration successful! Redirecting to dashboard...',
+        severity: 'success'
+      });
+
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Registration error:', error);
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || 'Registration failed. Please try again.',
         severity: 'error'
       });
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    // Create new user object
-    const newUser = {
-      ...formData,
-      savedJobs: [],
-      appliedJobs: []
-    };
-
-    // Add to dummy users (in a real app, this would be an API call)
-    dummyUsers.push(newUser);
-
-    // Store user in localStorage
-    localStorage.setItem('user', JSON.stringify(newUser));
-
-    setSnackbar({
-      open: true,
-      message: 'Registration successful! Redirecting to dashboard...',
-      severity: 'success'
-    });
-
-    // Redirect to dashboard after a short delay
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 2000);
   };
 
   return (
@@ -395,6 +409,7 @@ const EmployerRegister = () => {
                 color="primary"
                 fullWidth
                 size="large"
+                disabled={loading}
               >
                 Register as Employer
               </Button>

@@ -15,9 +15,10 @@ import {
   Select,
   MenuItem,
   Chip,
-  Autocomplete
+  Autocomplete,
+  CircularProgress
 } from '@mui/material';
-import { dummyUsers } from '../data/dummyUsers';
+import { register } from '../hooks/registerApi';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ const Register = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -67,7 +69,6 @@ const Register = () => {
     if (!formData.profession) newErrors.profession = 'Profession is required';
     if (!formData.phone) newErrors.phone = 'Phone is required';
     if (!formData.location) newErrors.location = 'Location is required';
-   
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -126,7 +127,7 @@ const Register = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -138,40 +139,60 @@ const Register = () => {
       return;
     }
 
-    // Check if email already exists
-    const existingUser = dummyUsers.find(user => user.email === formData.email);
-    if (existingUser) {
+    try {
+      setLoading(true);
+      
+      // Prepare the data for the API
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        profession: formData.profession,
+        phone: formData.phone,
+        location: formData.location,
+        linkedin: formData.linkedin,
+        github: formData.github,
+        website: formData.website,
+        bio: formData.bio,
+        skills: formData.skills,
+        education: formData.education,
+        experience: formData.experience
+      };
+
+      // Make the API call using the register hook
+      const response = await register(userData);
+
+      // Store user data in localStorage
+      localStorage.setItem('user', JSON.stringify(response.user));
+
       setSnackbar({
         open: true,
-        message: 'Email already registered',
+        message: 'Registration successful! Redirecting to dashboard...',
+        severity: 'success'
+      });
+
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Registration error:', error);
+      let errorMsg = 'Registration failed. Please try again.';
+      if (error.response && error.response.data && error.response.data.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      setSnackbar({
+        open: true,
+        message: errorMsg,
         severity: 'error'
       });
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    // Create new user object
-    const newUser = {
-      ...formData,
-      savedJobs: [],
-      appliedJobs: []
-    };
-
-    // Add to dummy users (in a real app, this would be an API call)
-    dummyUsers.push(newUser);
-
-    // Store user in localStorage
-    localStorage.setItem('user', JSON.stringify(newUser));
-
-    setSnackbar({
-      open: true,
-      message: 'Registration successful! Redirecting to dashboard...',
-      severity: 'success'
-    });
-
-    // Redirect to dashboard after a short delay
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 2000);
   };
 
   return (
@@ -418,8 +439,9 @@ const Register = () => {
                 color="primary"
                 fullWidth
                 size="large"
+                disabled={loading}
               >
-                Register
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Register'}
               </Button>
             </Grid>
           </Grid>
