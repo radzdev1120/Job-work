@@ -8,9 +8,11 @@ const useApi = () => {
   const { getAccessTokenSilently } = useAuth0();
 
   const api = axios.create({
-    baseURL: "http://localhost:5000/api/v1",
+    baseURL: "https://job-work.onrender.com",
   });
 
+  // https://job-work.onrender.com
+  // http://localhost:5000/api/v1
   // Add auth token to requests
   api.interceptors.request.use(async (config) => {
     try {
